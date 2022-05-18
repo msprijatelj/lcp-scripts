@@ -23,11 +23,12 @@ def add_parent_ids_to_file(filename, frame_file):
     frame_map = {f['name']: f['id'] for f in frame_data}
     add_parent_id(data, frame_map)
 
-    with open(filename, 'w+', encoding='utf-8') as f:
+    outfilename = f"{filename.split('.json')[0]}_new.json"
+    with open(outfilename, 'w+', encoding='utf-8') as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 if __name__ == "__main__":
-    frame_fn = sys.argv[1]
-    fn = sys.argv[2]
+    frame_fn = sys.argv[1] # path/filename for the `frames.json` to pull from
+    fn = sys.argv[2] # path/filename for the licensed gear/variant frames
     add_parent_ids_to_file(fn, frame_fn)
