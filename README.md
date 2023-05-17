@@ -6,4 +6,8 @@ This Python 3.8+ script currently takes the path to a `frames.json` file and lic
 ```bash
 python modify_lcp.py ./frames.json ./{weapons|systems|mods}.json
 ```
-The script will output the changes to a new file with `_new` appended to the filename, e.g. `weapons_new.json`.
+Alternatively, if you are trying to add a `license_id` to a variant frame, use the following command to reference the original frame's `license_id`:
+```bash
+python modify_lcp.py /path/to/original/frames.json ./frames.json
+```
+The script will output the changes to a new file with `_new` appended to the filename, e.g. `weapons_new.json`, for verifying the scripts ran correctly.
