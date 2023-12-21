@@ -8,7 +8,8 @@ from copy import deepcopy
 import json
 from typing import List, Optional
 import zipfile
-
+import fnmatch
+import os
 
 @dataclasses.dataclass
 class Dependency:
@@ -23,7 +24,7 @@ class Dependency:
         return self.name == candidate.name and self.version <= candidate.version
     
     def __str__(self):
-        return f"{self.name} ({self.version})"
+        return f"{self.name}-({self.version})"
     
 
 @dataclasses.dataclass
@@ -31,10 +32,10 @@ class Manifest:
     name: str
     author: str
     description: str
-    item_prefix: str
+    item_prefix: str = ""
     version: str
-    image_url: str
-    website: str
+    image_url: str = ""
+    website: str = ""
     dependencies: List[Dependency] = dataclasses.field(default_factory=lambda: [])
 
     def __post_init__(self):
@@ -102,28 +103,29 @@ class LCP:
     
     def dump(self, filepath: Optional[str]=None):
         if filepath is None:
-            filepath = self.manifest.name + " " + self.manifest.version + ".lcp"
+            filepath = self.manifest.name + "-" + self.manifest.version + ".lcp"
         with zipfile.ZipFile(filepath, 'w') as lcp:
             with lcp.open("lcp_manifest.json", 'w') as stream:
-                data = json.dumps(dataclasses.asdict(self.manifest), ensure_ascii=True, indent=4).encode('utf-8')
+                data = json.dumps(dataclasses.asdict(self.manifest), ensure_ascii=False, indent=4).encode('utf-8')
                 stream.write(data)
             
             for f, d in self.files.items():
                 with lcp.open(f, 'w') as stream:
-                    data = json.dumps(d, ensure_ascii=True, indent=4).encode('utf-8')
+                    data = json.dumps(d, ensure_ascii=False, indent=4).encode('utf-8')
                     stream.write(data)
 
 
 def get_parser():
     parser = argparse.ArgumentParser(description="A quick hack to zip together multiple .lcp files for easy distribution/installation.")
     parser.add_argument("name", type=str, help="Name for the resulting LCP")
+    parser.add_argument("-dir", "--directory", type=str, default="./lcps", help="Target directory housing the LCPs to merge")
     parser.add_argument("-d", "--description", type=str, default="A zipped LCP file.", help="Optional description for the resulting LCP")
     parser.add_argument("-v", "--version", type=str, default="0.0.0",
                         help="Optional semantic X.Y.Z version for the resulting LCP")
     parser.add_argument("-i", "--item-prefix", type=str, default="", help="Optional item-prefix for sorting")
     parser.add_argument("-m", "--image-url", type=str, default="", help="Optional Image URL")
     parser.add_argument("-w", "--website", type=str, default="", help="Optional Website URL")
-    parser.add_argument("lcps", type=str, nargs="+", help="Two or more LCP filepaths to merge")
+    parser.add_argument("-lcps", type=str, nargs="+", help="Two or more LCP filepaths to merge")
     return parser
 
 
@@ -131,12 +133,17 @@ def _main():
     parser = get_parser()
     args = parser.parse_args()
 
-    if (len(args.lcps) < 2):
+    if (args.lcps is None):
+        fps = [f'{args.directory}/{file}' for file in os.listdir(args.directory) if fnmatch.fnmatch(file, '*.lcp')]
+    else:
+        fps = args.lcps
+
+    if (len(fps) < 2):
         print("Two or more LCP files are required")
         return 1
 
     lcps = []
-    for lpath in args.lcps:
+    for lpath in fps:
         lcps.append(LCP.load(lpath))
     combined_manifest = Manifest(name=args.name,
                                 author="",
