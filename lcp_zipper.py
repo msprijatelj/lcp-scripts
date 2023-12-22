@@ -10,6 +10,7 @@ from typing import List, Optional
 import zipfile
 import fnmatch
 import os
+from sys import exit
 
 @dataclasses.dataclass
 class Dependency:
@@ -32,8 +33,8 @@ class Manifest:
     name: str
     author: str
     description: str
-    item_prefix: str = ""
     version: str
+    item_prefix: str = ""
     image_url: str = ""
     website: str = ""
     dependencies: List[Dependency] = dataclasses.field(default_factory=lambda: [])
@@ -117,7 +118,7 @@ class LCP:
 
 def get_parser():
     parser = argparse.ArgumentParser(description="A quick hack to zip together multiple .lcp files for easy distribution/installation.")
-    parser.add_argument("name", type=str, help="Name for the resulting LCP")
+    parser.add_argument("-n", "--name", type=str, default="new-lcp", help="Name for the resulting LCP")
     parser.add_argument("-dir", "--directory", type=str, default="./lcps", help="Target directory housing the LCPs to merge")
     parser.add_argument("-d", "--description", type=str, default="A zipped LCP file.", help="Optional description for the resulting LCP")
     parser.add_argument("-v", "--version", type=str, default="0.0.0",
