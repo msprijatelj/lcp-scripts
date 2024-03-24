@@ -26,7 +26,7 @@ def getHeatCap(npc_class_name, npc_classes_data):
             heat_cap = npc_class["stats"]["heatcap"][0]
     return heat_cap
 
-def replaceRecharge(npc_features_data, npc_classes_data):
+def addHeatSelf(npc_features_data, npc_classes_data, keep_recharge=True):
     avg_rounds = 8
     avg_heat_cap = 6
     rchg_die_size = 6
@@ -42,10 +42,14 @@ def replaceRecharge(npc_features_data, npc_classes_data):
                 recharge_val = tag["val"]
                 num_uses = (rchg_die_size+1-recharge_val)*avg_rounds/rchg_die_size
                 heat_cost = int(heat_cap/num_uses)
-                tags[i] = {
+                heat_self_tag = {
                     "id": "tg_heat_self",
                     "val": heat_cost
                 }
+                if keep_recharge:
+                    tags.append(heat_self_tag)
+                else:
+                    tags[i] = heat_self_tag
 
 
 def main(src, dest):
@@ -56,12 +60,16 @@ def main(src, dest):
     if not os.path.exists(dest):
         os.mkdir(dest)
 
+    reduce_heat = True
+    add_heat_self = True
+    keep_recharge = True
+
     if npc_classes_data:
-        reduceHeat(npc_classes_data)
+        reduceHeat(npc_classes_data) if reduce_heat else None
         writeData(npc_classes_data, f"{dest}/npc_classes.json")
 
     if npc_features_data:
-        replaceRecharge(npc_features_data, npc_classes_data)
+        addHeatSelf(npc_features_data, npc_classes_data, keep_recharge=keep_recharge) if add_heat_self else None
         writeData(npc_features_data, f"{dest}/npc_features.json")
 
     if npc_templates_data:
