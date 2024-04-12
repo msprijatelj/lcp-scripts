@@ -4,3 +4,4 @@ npc_templates.json
 build/
 dist/
 *.spec
+npc_rebalance/

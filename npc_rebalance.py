@@ -1,6 +1,5 @@
 import sys
 import json
-import copy
 import os
 
 def reduceHeat(npc_classes_data):
@@ -19,6 +18,17 @@ def writeData(data, fn):
     with open(fn, "w+", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
+def markHb(data, id_prefix="", name_prefix=""):
+    for item in data:
+        item['id'] = f"{id_prefix}-{item['id']}"
+        item['name'] = f"{name_prefix} {item['name']}"
+        if origin_name := item.get("origin", {}).get("name"):
+            item["origin"]["name"] = f"{name_prefix} {origin_name}"
+        if base_features := item.get("base_features"):
+            item["base_features"] = [f"{id_prefix}-{feat}" for feat in base_features]
+        if optl_features := item.get("optional_features"):
+            item["optional_features"] = [f"{id_prefix}-{feat}" for feat in optl_features]               
+
 def getHeatCap(npc_class_name, npc_classes_data):
     heat_cap = 0
     for npc_class in npc_classes_data:
@@ -26,22 +36,18 @@ def getHeatCap(npc_class_name, npc_classes_data):
             heat_cap = npc_class["stats"]["heatcap"][0]
     return heat_cap
 
-def addHeatSelf(npc_features_data, npc_classes_data, keep_recharge=True):
-    avg_rounds = 8
-    avg_heat_cap = 6
-    rchg_die_size = 6
+def addHeatSelf(npc_features_data, keep_recharge=True):
+    rchg_to_heat_map = {
+        4: 2,
+        5: 3,
+        6: 4
+    }
     for npc_feature in npc_features_data:
-        origin = npc_feature["origin"]
-        if origin["type"].lower() == "class":
-            heat_cap = getHeatCap(origin["name"], npc_classes_data)
-        else:
-            heat_cap = avg_heat_cap
         tags = npc_feature.get("tags", [])
         for i, tag in enumerate(tags):
             if tag["id"] == "tg_recharge":
                 recharge_val = tag["val"]
-                num_uses = (rchg_die_size+1-recharge_val)*avg_rounds/rchg_die_size
-                heat_cost = int(heat_cap/num_uses)
+                heat_cost = rchg_to_heat_map[recharge_val]
                 heat_self_tag = {
                     "id": "tg_heat_self",
                     "val": heat_cost
@@ -51,6 +57,16 @@ def addHeatSelf(npc_features_data, npc_classes_data, keep_recharge=True):
                 else:
                     tags[i] = heat_self_tag
 
+def reduceReliable(npc_features_data):
+    for npc_feature in npc_features_data:
+        tags = npc_feature.get("tags", [])
+        for tag in tags:
+            if tag["id"] == "tg_reliable":
+                reliable_val = tag["val"]
+                rel_vals = reliable_val.strip("{}").split("/")
+                new_rel_vals = [str(int(v)-1) for v in rel_vals]
+                new_rel_val = "{%s}" % ("/".join(new_rel_vals))
+                tag["val"] = new_rel_val
 
 def main(src, dest):
     npc_classes_data = readData(f"{src}/npc_classes.json")
@@ -60,19 +76,28 @@ def main(src, dest):
     if not os.path.exists(dest):
         os.mkdir(dest)
 
-    reduce_heat = True
+    mark_as_hb = True
+    hb_id_prefix = "valk-hr"
+    hb_name_prefix = "!V!"
+
+    reduce_heat = False
+    reduce_reliable = True
     add_heat_self = True
     keep_recharge = True
 
     if npc_classes_data:
         reduceHeat(npc_classes_data) if reduce_heat else None
+        markHb(npc_features_data, id_prefix=hb_id_prefix, name_prefix=hb_name_prefix) if mark_as_hb else None
         writeData(npc_classes_data, f"{dest}/npc_classes.json")
 
     if npc_features_data:
-        addHeatSelf(npc_features_data, npc_classes_data, keep_recharge=keep_recharge) if add_heat_self else None
+        addHeatSelf(npc_features_data, keep_recharge=keep_recharge) if add_heat_self else None
+        reduceReliable(npc_features_data) if reduce_reliable else None
+        markHb(npc_features_data, id_prefix=hb_id_prefix, name_prefix=hb_name_prefix) if mark_as_hb else None
         writeData(npc_features_data, f"{dest}/npc_features.json")
 
     if npc_templates_data:
+        markHb(npc_templates_data, id_prefix=hb_id_prefix, name_prefix=hb_name_prefix) if mark_as_hb else None
         writeData(npc_templates_data, f"{dest}/npc_templates.json")
 
 
