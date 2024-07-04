@@ -1,6 +1,6 @@
-npc_classes.json
-npc_features.json
-npc_templates.json
+*npc_classes.json
+*npc_features.json
+*npc_templates.json
 lcp_manifest.json
 *.lcp
 build/
