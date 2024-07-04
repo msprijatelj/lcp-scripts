@@ -25,7 +25,7 @@ def writeData(data, fn):
 
 def markHb(data, id_prefix="", name_prefix=""):
     for item in data:
-        item['id'] = f"{id_prefix}-{item['id']}"
+        item['id'] = f"{id_prefix}{item['id']}"
         item['name'] = f"{name_prefix} {item['name']}"
         if origin_name := item.get("origin", {}).get("name"):
             item["origin"]["name"] = f"{name_prefix} {origin_name}"
@@ -82,7 +82,7 @@ def main(src, dest):
         os.mkdir(dest)
 
     mark_as_hb = True
-    hb_id_prefix = "valk-hr"
+    hb_id_prefix = "valk-hr-"
     hb_name_prefix = "!V!"
 
     reduce_heat = False
