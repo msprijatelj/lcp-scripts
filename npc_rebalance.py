@@ -7,6 +7,11 @@ def reduceHeat(npc_classes_data):
         if heatcap := npc_class['stats'].get('heatcap'):
             npc_class['stats']['heatcap'] = [hc - 2 for hc in heatcap]
 
+def reduceArmor(npc_classes_data):
+    for npc_class in npc_classes_data:
+        if armor := npc_class['stats'].get('armor'):
+            npc_class['stats']['armor'] = [max(0, arm - 1) for arm in armor]
+
 def readData(fn):
     data = None
     if os.path.exists(fn):
@@ -82,11 +87,13 @@ def main(src, dest):
 
     reduce_heat = False
     reduce_reliable = True
+    reduce_armor = True
     add_heat_self = True
     keep_recharge = True
 
     if npc_classes_data:
         reduceHeat(npc_classes_data) if reduce_heat else None
+        reduceArmor(npc_classes_data) if reduce_armor else None
         markHb(npc_features_data, id_prefix=hb_id_prefix, name_prefix=hb_name_prefix) if mark_as_hb else None
         writeData(npc_classes_data, f"{dest}/npc_classes.json")
 
