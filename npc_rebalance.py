@@ -26,13 +26,13 @@ def writeData(data, fn):
 def markHb(data, id_prefix="", name_prefix=""):
     for item in data:
         item['id'] = f"{id_prefix}{item['id']}"
-        item['name'] = f"{name_prefix} {item['name']}"
+        item['name'] = " ".join([name_prefix, origin_name])
         if origin_name := item.get("origin", {}).get("name"):
-            item["origin"]["name"] = f"{name_prefix} {origin_name}"
+            item["origin"]["name"] = " ".join([name_prefix, origin_name])
         if base_features := item.get("base_features"):
-            item["base_features"] = [f"{id_prefix}-{feat}" for feat in base_features]
+            item["base_features"] = [f"{id_prefix}{feat}" for feat in base_features]
         if optl_features := item.get("optional_features"):
-            item["optional_features"] = [f"{id_prefix}-{feat}" for feat in optl_features]               
+            item["optional_features"] = [f"{id_prefix}{feat}" for feat in optl_features]               
 
 def getHeatCap(npc_class_name, npc_classes_data):
     heat_cap = 0
