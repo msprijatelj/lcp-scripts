@@ -26,7 +26,7 @@ def writeData(data, fn):
 def markHb(data, id_prefix="", name_prefix=""):
     for item in data:
         item['id'] = f"{id_prefix}{item['id']}"
-        item['name'] = " ".join([name_prefix, origin_name])
+        item['name'] = " ".join([name_prefix, item['name']])
         if origin_name := item.get("origin", {}).get("name"):
             item["origin"]["name"] = " ".join([name_prefix, origin_name])
         if base_features := item.get("base_features"):
@@ -73,6 +73,29 @@ def reduceReliable(npc_features_data):
                 new_rel_val = "{%s}" % ("/".join(new_rel_vals))
                 tag["val"] = new_rel_val
 
+def dataArraytoDict(fn):
+    with open(fn, 'r+', encoding="utf-8") as f:
+        content = json.load(f)
+        items = {item['id']: item for item in content}
+        for v in items.values():
+            del v['id']
+    return items
+
+def mergeClasses(npc_classes_data, mergeDir):
+    customClassData = dataArraytoDict(f"{mergeDir}/npc_classes.json")
+    for item in npc_classes_data:
+        classId = item['id']
+        customClassStats = customClassData.get(classId, {'stats': {}})
+        item['stats'] = {**item['stats'], **customClassStats['stats']}
+
+def mergeFeatures(npc_features_data, mergeDir):
+    customFeatureData = dataArraytoDict(f"{mergeDir}/npc_features.json")
+    for i, item in enumerate(npc_features_data):
+        featureId = item['id']
+        customFeatureStats = customFeatureData.get(featureId, {})
+        item = {**item, **customFeatureStats}
+        npc_features_data[i] = item
+
 def main(src, dest):
     npc_classes_data = readData(f"{src}/npc_classes.json")
     npc_features_data = readData(f"{src}/npc_features.json")
@@ -91,15 +114,21 @@ def main(src, dest):
     add_heat_self = True
     keep_recharge = True
 
+    merge_classes = False
+    merge_features = False
+    merge_dir = "merge"
+
     if npc_classes_data:
         reduceHeat(npc_classes_data) if reduce_heat else None
         reduceArmor(npc_classes_data) if reduce_armor else None
-        markHb(npc_features_data, id_prefix=hb_id_prefix, name_prefix=hb_name_prefix) if mark_as_hb else None
+        mergeClasses(npc_classes_data, merge_dir) if merge_classes else None
+        markHb(npc_classes_data, id_prefix=hb_id_prefix, name_prefix=hb_name_prefix) if mark_as_hb else None
         writeData(npc_classes_data, f"{dest}/npc_classes.json")
 
     if npc_features_data:
         addHeatSelf(npc_features_data, keep_recharge=keep_recharge) if add_heat_self else None
         reduceReliable(npc_features_data) if reduce_reliable else None
+        mergeFeatures(npc_features_data, merge_dir) if merge_features else None
         markHb(npc_features_data, id_prefix=hb_id_prefix, name_prefix=hb_name_prefix) if mark_as_hb else None
         writeData(npc_features_data, f"{dest}/npc_features.json")
 

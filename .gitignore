@@ -8,3 +8,4 @@ dist/
 *.spec
 npc_rebalance/
 rebalance/
+merge/
