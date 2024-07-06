@@ -64,7 +64,16 @@ class Manifest:
         dependencies.extend(
             d for d in other.dependencies if not d.satisfied(self) and not any(d.satisfied(d2) for d2 in dependencies)
         )
-        return Manifest(name, author, description, item_prefix, version, image_url, website, dependencies)
+        return Manifest(
+            name=name,
+            author=author,
+            description=description,
+            version=version,
+            item_prefix=item_prefix,
+            image_url=image_url,
+            website=website,
+            dependencies=dependencies
+        )
 
 
 class LCP:
