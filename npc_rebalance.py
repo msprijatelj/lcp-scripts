@@ -86,7 +86,9 @@ def mergeClasses(npc_classes_data, mergeDir):
     for item in npc_classes_data:
         classId = item['id']
         customClassStats = customClassData.get(classId, {'stats': {}})
-        item['stats'] = {**item['stats'], **customClassStats['stats']}
+        item['stats'] = {**item['stats'], **customClassStats.get('stats', {})}
+        item['base_features'] = customClassStats.get('base_features', item['base_features'])
+        item['optional_features'] = customClassStats.get('optional_features', item['optional_features'])
 
 def mergeFeatures(npc_features_data, mergeDir):
     customFeatureData = dataArraytoDict(f"{mergeDir}/npc_features.json")
