@@ -1,6 +1,8 @@
 import sys
 import json
 import os
+import argparse
+from zipfile import ZipFile
 
 def reduceHeat(npc_classes_data):
     for npc_class in npc_classes_data:
@@ -106,13 +108,13 @@ def main(src, dest):
     if not os.path.exists(dest):
         os.mkdir(dest)
 
-    mark_as_hb = True
+    mark_as_hb = False
     hb_id_prefix = "valk-hr-"
     hb_name_prefix = "!V!"
 
     reduce_heat = False
-    reduce_reliable = True
-    reduce_armor = True
+    reduce_reliable = False
+    reduce_armor = False
     add_heat_self = True
     keep_recharge = True
 
@@ -138,8 +140,24 @@ def main(src, dest):
         markHb(npc_templates_data, id_prefix=hb_id_prefix, name_prefix=hb_name_prefix) if mark_as_hb else None
         writeData(npc_templates_data, f"{dest}/npc_templates.json")
 
+def get_parser():
+    parser = argparse.ArgumentParser(description="A highly modular script for modifying Lancer NPC content.")
+    parser.add_argument("-n", "--name", type=str, default="new-lcp", help="Name for the resulting LCP")
+    parser.add_argument("-s", "--source", type=str, default="./source", help="Directory housing the source NPC data to modify.")
+    parser.add_argument("-o", "--output", type=str, default="./output", help="Target directory for the updated NPC data.")
+    parser.add_argument("-m", "--merge", type=str, default="./merge", help="Optional directory.")
+
+    parser.add_argument("-d", "--description", type=str, default="A zipped LCP file.", help="Optional description for the resulting LCP")
+    parser.add_argument("-v", "--version", type=str, default="0.0.0",
+                        help="Optional semantic X.Y.Z version for the resulting LCP")
+    parser.add_argument("-i", "--id-prefix", type=str, default="", help="Optional item-prefix for differentiating features on the backend.")
+    parser.add_argument("-n", "--name-prefix", type=str, default="", help="Optional name-prefix for differentiating features in the UI.")
+    return parser
+
 
 if __name__ == "__main__":
+    parser = get_parser()
+    args = parser.parse_args()
     src = sys.argv[1]
     dest = sys.argv[2]
     main(src, dest)
