@@ -43,9 +43,9 @@ def getHeatCap(npc_class_name, npc_classes_data):
 
 def addHeatSelf(npc_features_data, keep_recharge=True):
     rchg_to_heat_map = {
-        4: 2,
-        5: 3,
-        6: 4
+        4: 1,
+        5: 2,
+        6: 3
     }
     for npc_feature in npc_features_data:
         tags = npc_feature.get("tags", [])
@@ -106,13 +106,13 @@ def main(src, dest):
     if not os.path.exists(dest):
         os.mkdir(dest)
 
-    mark_as_hb = True
+    mark_as_hb = False
     hb_id_prefix = "valk-hr-"
     hb_name_prefix = "!V!"
 
     reduce_heat = False
-    reduce_reliable = True
-    reduce_armor = True
+    reduce_reliable = False
+    reduce_armor = False
     add_heat_self = True
     keep_recharge = True
 
