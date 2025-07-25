@@ -44,8 +44,8 @@ def getHeatCap(npc_class_name, npc_classes_data):
 def addHeatSelf(npc_features_data, keep_recharge=True):
     rchg_to_heat_map = {
         4: 1,
-        5: 2,
-        6: 3
+        5: 1,
+        6: 2
     }
     for npc_feature in npc_features_data:
         tags = npc_feature.get("tags", [])
